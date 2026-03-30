@@ -151,16 +151,16 @@ export default function AbsencesPage() {
           <div style={{ gridColumn: '1 / -1' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Observação</div>
-              <div style={{ fontSize: 10, color: form.observation.length >= 350 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 600 }}>
-                {form.observation.length} / 350
+              <div style={{ fontSize: 10, color: (form.observation?.length ?? 0) >= 350 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 600 }}>
+                {form.observation?.length ?? 0} / 350
               </div>
             </div>
             <textarea 
               className="field-input" 
-              style={{ resize: 'vertical', minHeight: 80, borderColor: form.observation.length >= 350 ? 'rgba(239,68,68,0.3)' : '' }} 
+              style={{ resize: 'vertical', minHeight: 80, borderColor: (form.observation?.length ?? 0) >= 350 ? 'rgba(239,68,68,0.3)' : '' }} 
               placeholder="Detalhes adicionais..." 
               maxLength={350}
-              value={form.observation} 
+              value={form.observation ?? ''} 
               onChange={(e) => setForm((f) => ({ ...f, observation: e.target.value }))} 
             />
           </div>
