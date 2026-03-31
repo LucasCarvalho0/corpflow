@@ -14,7 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function checkAuth() {
       const { data } = await supabase.auth.getSession();
-      const isMaster = sessionStorage.getItem('isMasterAuthenticated') === 'true';
+      const isMaster = localStorage.getItem('isMasterAuthenticated') === 'true';
 
       if (!data.session && !isMaster) {
         router.push('/login');

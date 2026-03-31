@@ -84,8 +84,8 @@ export default function OvertimeSaturdayPage() {
       await addAudit({ user_email: 'Admin', action: 'Criação', detail: `Escala de Sábado criada para ${fmtDate(otDate)} com ${empList.length} funcionário(s)`, type: 'Criação' });
       notify('Escala de Sábado criada com sucesso!');
       setModalOpen(false);
-    } catch (e) {
-      notify('Erro ao salvar escala', 'error');
+    } catch (e: any) {
+      notify(e.message || 'Erro ao salvar escala', 'error');
     }
   }
 
@@ -94,8 +94,8 @@ export default function OvertimeSaturdayPage() {
       await deleteOvertime(id);
       await addAudit({ user_email: 'Admin', action: 'Exclusão', detail: 'Escala de Sábado removida', type: 'Exclusão' });
       notify('Escala excluída');
-    } catch (e) {
-      notify('Erro ao excluir escala', 'error');
+    } catch (e: any) {
+      notify(e.message || 'Erro ao excluir escala', 'error');
     }
   }
 

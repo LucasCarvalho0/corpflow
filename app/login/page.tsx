@@ -24,8 +24,21 @@ export default function LoginPage() {
 
       // Master Access Fallback for the user
       if (email === 'lucascarvalho@corpflow.com' && password === 'corpflow.2026') {
-        // Marcamos uma sessão temporária no navegador para o acesso mestre
-        sessionStorage.setItem('isMasterAuthenticated', 'true');
+        const { signIn, signUp } = await import('@/lib/supabase');
+        
+        // Tenta entrar silenciosamente no Supabase para garantir sessão (RLS)
+        const { error: authError } = await signIn(email, password);
+        
+        if (authError) {
+          // Se o usuário não existir no novo projeto, tentamos cadastrar automaticamente
+          await signUp(email, password).catch(() => null);
+          // Tenta entrar novamente após o cadastro/tentativa
+          await signIn(email, password).catch(() => null);
+        }
+
+        // Marcamos uma sessão persistente no navegador para o acesso mestre
+        // Isso sobrevive a atualizações e reinicializações do PWA
+        localStorage.setItem('isMasterAuthenticated', 'true');
         router.push('/dashboard');
         return;
       }
