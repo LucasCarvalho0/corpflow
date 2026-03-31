@@ -22,3 +22,5 @@ yarn-error.log*
 *.pem
 tsconfig.tsbuildinfo
 build_output.txt
+
+.vercel
