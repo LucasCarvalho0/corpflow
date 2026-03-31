@@ -12,6 +12,7 @@ interface BtnProps {
   disabled?: boolean;
   type?: 'button' | 'submit';
   style?: CSSProperties;
+  title?: string;
 }
 
 const styles: Record<BtnVariant, CSSProperties> = {
@@ -21,12 +22,13 @@ const styles: Record<BtnVariant, CSSProperties> = {
   success: { background: 'rgba(16,185,129,0.1)',               color: '#34d399',                  border: '1px solid rgba(16,185,129,0.2)' },
 };
 
-export default function Btn({ children, onClick, variant = 'outline', size = 'md', disabled, type = 'button', style }: BtnProps) {
+export default function Btn({ children, onClick, variant = 'outline', size = 'md', disabled, type = 'button', style, title }: BtnProps) {
   return (
     <button
       type={type}
       disabled={disabled}
       onClick={onClick}
+      title={title}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: size === 'sm' ? '6px 14px' : '10px 22px',

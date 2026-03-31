@@ -18,7 +18,7 @@ const blank = (): Omit<Employee, 'id'> => ({
 });
 
 export default function EmployeesPage() {
-  const { employees, addEmployee, updateEmployee, addAudit } = useStore();
+  const { employees, addEmployee, updateEmployee, deleteEmployee, addAudit } = useStore();
   const [search, setSearch] = useState('');
   const [filterCompany, setFilterCompany] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -73,6 +73,17 @@ export default function EmployeesPage() {
     }
   }
 
+  async function remove(emp: Employee) {
+    if (!confirm(`Tem certeza que deseja excluir o funcionário ${emp.name}?\nEsta ação não poderá ser desfeita.`)) return;
+    try {
+      await deleteEmployee(emp.id);
+      await addAudit({ user_email: 'Admin', action: 'Exclusão', detail: `Funcionário ${emp.name} excluído do sistema`, type: 'Exclusão' });
+      notify('Funcionário excluído com sucesso');
+    } catch (e) {
+      notify('Erro ao excluir funcionário', 'error');
+    }
+  }
+
   const F = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   return (
@@ -123,9 +134,12 @@ export default function EmployeesPage() {
                   <td style={{ color: 'var(--text-secondary)' }}>{e.role}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{e.work_schedule}</td>
                   <td><span className={`pill ${e.status === 'Ativo' ? 'pill-green' : 'pill-gray'}`}>{e.status}</span></td>
-                  <td><div style={{ display: 'flex', gap: 8 }}>
-                    <Btn size="sm" onClick={() => openEdit(e)}>✏️ Editar</Btn>
-                    <Btn size="sm" variant="danger" onClick={() => toggleStatus(e)}>{e.status === 'Ativo' ? 'Desativar' : 'Ativar'}</Btn>
+                  <td><div style={{ display: 'flex', gap: 6 }}>
+                    <Btn size="sm" onClick={() => openEdit(e)} title="Editar">✏️</Btn>
+                    <Btn size="sm" variant={e.status === 'Ativo' ? 'danger' : 'gold'} onClick={() => toggleStatus(e)} title={e.status === 'Ativo' ? 'Desativar' : 'Ativar'}>
+                      {e.status === 'Ativo' ? '🚫' : '✅'}
+                    </Btn>
+                    <Btn size="sm" variant="danger" onClick={() => remove(e)} title="Excluir">🗑️</Btn>
                   </div></td>
                 </tr>
               ))}

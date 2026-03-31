@@ -18,6 +18,7 @@ interface StoreActions {
   refreshData: () => Promise<void>;
   addEmployee: (emp: Omit<Employee, 'id' | 'created_at'>) => Promise<void>;
   updateEmployee: (id: number, data: Partial<Employee>) => Promise<void>;
+  deleteEmployee: (id: number) => Promise<void>;
   addAbsence: (abs: Omit<Absence, 'id' | 'created_at'>) => Promise<void>;
   deleteAbsence: (id: number) => Promise<void>;
   addOvertime: (ot: { date: string; type: string; created_by: string }, emps: { employee_id: number; start_time: string; end_time: string }[]) => Promise<void>;
@@ -86,6 +87,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       throw error || new Error('Erro ao atualizar funcionário');
     }
   };
+  
+  const deleteEmployee = async (id: number) => {
+    const { error } = await db.deleteEmployee(id);
+    if (!error) {
+      setEmployees((s) => s.filter((e) => e.id !== id));
+    } else {
+      throw error || new Error('Erro ao excluir funcionário');
+    }
+  };
 
   const addAbsence = async (abs: Omit<Absence, 'id' | 'created_at'>) => {
     const { data, error } = await db.createAbsence(abs);
@@ -133,7 +143,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <StoreContext.Provider value={{ 
       employees, absences, overtimes, auditLog, loading, 
-      refreshData, addEmployee, updateEmployee, addAbsence, deleteAbsence, addOvertime, deleteOvertime, addAudit 
+      refreshData, addEmployee, updateEmployee, deleteEmployee, addAbsence, deleteAbsence, addOvertime, deleteOvertime, addAudit 
     }}>
       {children}
     </StoreContext.Provider>

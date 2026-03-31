@@ -42,6 +42,10 @@ export async function updateEmployee(id: number, data: Partial<import('@/types')
   return supabase.from('employees').update(data).eq('id', id).select().single();
 }
 
+export async function deleteEmployee(id: number) {
+  return supabase.from('employees').delete().eq('id', id);
+}
+
 // ── Absences ────────────────────────────────────────────────────────────────
 
 export async function fetchAbsences(startDate?: string, endDate?: string) {
