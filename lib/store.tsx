@@ -74,7 +74,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setEmployees((s) => [...s, data]);
     } else {
-      notify('Erro ao cadastrar funcionário', 'error');
+      throw error || new Error('Erro ao cadastrar funcionário');
     }
   };
 
@@ -83,7 +83,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && updated) {
       setEmployees((s) => s.map((e) => (e.id === id ? updated : e)));
     } else {
-      notify('Erro ao atualizar funcionário', 'error');
+      throw error || new Error('Erro ao atualizar funcionário');
     }
   };
 
@@ -92,7 +92,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setAbsences((s) => [data, ...s]);
     } else {
-      notify('Erro ao registrar ausência', 'error');
+      throw error || new Error('Erro ao registrar ausência');
     }
   };
 
@@ -101,16 +101,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error) {
       setAbsences((s) => s.filter((a) => a.id !== id));
     } else {
-      notify('Erro ao excluir registro', 'error');
+      throw error || new Error('Erro ao excluir registro');
     }
   };
 
   const addOvertime = async (ot: { date: string; type: string; created_by: string }, emps: { employee_id: number; start_time: string; end_time: string }[]) => {
     const { error } = await db.createOvertime(ot, emps);
     if (!error) {
-      await refreshData(); // Recarrega completo para pegar relações complexas
+      await refreshData();
     } else {
-      notify('Erro ao criar escala', 'error');
+      throw error || new Error('Erro ao criar escala');
     }
   };
 
@@ -119,7 +119,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error) {
       setOvertimes((s) => s.filter((o) => o.id !== id));
     } else {
-      notify('Erro ao excluir escala', 'error');
+      throw error || new Error('Erro ao excluir escala');
     }
   };
 

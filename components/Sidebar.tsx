@@ -27,7 +27,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     onClose();
   }
 
-  function logout() {
+  async function logout() {
+    const { supabase } = await import('@/lib/supabase');
+    await supabase.auth.signOut();
     router.push('/login');
   }
 

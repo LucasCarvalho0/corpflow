@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('lucascarvalho@corpflow.com');
-  const [password, setPassword] = useState('corpflow.2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,13 +20,18 @@ export default function LoginPage() {
     setError('');
 
     try {
+      const { signIn } = await import('@/lib/supabase');
+
       // Master Access Fallback for the user
       if (email === 'lucascarvalho@corpflow.com' && password === 'corpflow.2026') {
+        // Tentamos logar no Supabase para garantir a sessão (RLS)
+        // Se falhar (usuário não criado no painel), ainda deixamos passar para o dashboard,
+        // mas as operações de escrita no banco podem falhar.
+        await signIn(email, password).catch(e => console.warn('Supabase Auth Fallback:', e));
         router.push('/dashboard');
         return;
       }
 
-      const { signIn } = await import('@/lib/supabase');
       const { error: authError } = await signIn(email, password);
       
       if (authError) {

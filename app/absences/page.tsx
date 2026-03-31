@@ -52,8 +52,8 @@ export default function AbsencesPage() {
       await addAudit({ user_email: 'Admin', action: 'Criação', detail: `Ausência registrada para ${emp?.name ?? 'funcionário'} (${form.type})`, type: 'Criação' });
       notify('Ausência registrada com sucesso!');
       setModalOpen(false);
-    } catch (e) {
-      notify('Erro ao salvar ausência', 'error');
+    } catch (e: any) {
+      notify(e.message || 'Erro ao salvar ausência', 'error');
     }
   }
 
@@ -62,8 +62,8 @@ export default function AbsencesPage() {
       await deleteAbsence(id);
       await addAudit({ user_email: 'Admin', action: 'Exclusão', detail: 'Registro de ausência removido', type: 'Exclusão' });
       notify('Registro excluído');
-    } catch (e) {
-      notify('Erro ao excluir registro', 'error');
+    } catch (e: any) {
+      notify(e.message || 'Erro ao excluir registro', 'error');
     }
   }
 

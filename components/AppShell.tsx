@@ -1,11 +1,33 @@
 'use client';
 // components/AppShell.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Notifications from './Notifications';
+import { supabase } from '@/lib/supabase';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        router.push('/login');
+      } else {
+        setChecking(false);
+      }
+    }
+    checkAuth();
+  }, [router]);
+
+  if (checking) return (
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)' }}>
+      <div className="spinner" />
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>

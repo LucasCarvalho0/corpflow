@@ -49,8 +49,16 @@ export default function EmployeesPage() {
         notify('Funcionário cadastrado com sucesso!');
       }
       setModalOpen(false);
-    } catch (e) {
-      notify('Erro ao salvar funcionário', 'error');
+    } catch (e: any) {
+      const msg = e.message || '';
+      if (msg.includes('unique_registration') || msg.includes('duplicate key')) {
+        notify('Erro: Matrícula já cadastrada', 'error');
+      } else if (msg.includes('JWT') || msg.includes('claims') || msg.includes('auth')) {
+        notify('Erro: Sessão expirada ou sem permissão. Refaça o login.', 'error');
+      } else {
+        notify('Erro ao salvar funcionário', 'error');
+      }
+      console.error('Save error:', e);
     }
   }
 
