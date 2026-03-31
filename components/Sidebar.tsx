@@ -30,6 +30,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   async function logout() {
     const { supabase } = await import('@/lib/supabase');
     await supabase.auth.signOut();
+    sessionStorage.removeItem('isMasterAuthenticated');
     router.push('/login');
   }
 
