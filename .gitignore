@@ -24,3 +24,5 @@ tsconfig.tsbuildinfo
 build_output.txt
 
 .vercel
+
+/lib/generated/prisma

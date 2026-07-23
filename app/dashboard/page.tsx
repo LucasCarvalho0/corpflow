@@ -7,11 +7,16 @@ import { useStore } from '@/lib/store';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 function today() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(d: string) { if (!d) return ''; const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; }
+function diffDays(dateStr: string) {
+  const diff = new Date(dateStr).getTime() - new Date(today()).getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
 
 const DAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 export default function DashboardPage() {
-  const { employees, absences, overtimes, loading } = useStore();
+  const { employees, absences, overtimes, vacations, dayOffs, loading } = useStore();
 
   const stats = useMemo(() => {
     if (loading) return { active: 0, total: 0, absToday: 0, atestados: 0, otToday: 0, otMonth: 0 };
@@ -23,6 +28,17 @@ export default function DashboardPage() {
     const otMonth = overtimes.reduce((s, o) => s + o.employees.length, 0);
     return { active, total: employees.length, absToday, atestados, otToday, otMonth };
   }, [employees, absences, overtimes]);
+
+  // Férias nos próximos 30 dias
+  const upcomingVacations = useMemo(() => vacations.filter((v) => {
+    if (v.status === 'Cancelado' || v.status === 'Concluído') return false;
+    const days = diffDays(v.start_date);
+    return days >= 0 && days <= 30;
+  }).sort((a, b) => a.start_date.localeCompare(b.start_date)), [vacations]);
+
+  // Folgas pendentes
+  const pendingDayOffs = useMemo(() => dayOffs.filter((d) => d.status === 'Pendente').length, [dayOffs]);
+
 
   const todayOTRows = useMemo(() => {
     const t = today();
@@ -79,7 +95,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: -1.2, fontFamily: 'Outfit, sans-serif', color: '#fff' }}>Dashboard</div>
+          <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: -1.2, fontFamily: 'Outfit, sans-serif', color: 'var(--text-primary)' }}>Dashboard</div>
           <div style={{ color: 'var(--text-secondary)', fontSize: 15, marginTop: 4, fontWeight: 500, textTransform: 'capitalize', fontFamily: 'Outfit, sans-serif' }}>{dateStr}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '8px 16px', fontSize: 13, color: 'var(--success)', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>
@@ -98,9 +114,50 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
         <StatCard icon="👥" value={stats.active} label="Ativos" delta={`${stats.total} total`} accent="gold" />
         <StatCard icon="🚫" value={stats.absToday} label="Ausências Hoje" delta={stats.absToday > 0 ? 'Requer atenção' : 'Normal'} deltaUp={stats.absToday === 0} accent="red" />
-        <StatCard icon="📋" value={stats.atestados} label="Atestados" delta="Registros ativos" accent="blue" />
-        <StatCard icon="⏱️" value={stats.otToday} label="Hora Extra Hoje" delta={`${stats.otMonth} no mês`} accent="green" />
+        <StatCard icon="🏖️" value={upcomingVacations.length} label="Férias em 30 dias" delta={`${vacations.filter(v=>v.status==='Em férias').length} em andamento`} accent="blue" />
+        <StatCard icon="🗓️" value={pendingDayOffs} label="Folgas Pendentes" delta="A utilizar" deltaUp={pendingDayOffs === 0} accent="green" />
       </div>
+
+      {/* Alerta de Férias Próximas */}
+      {upcomingVacations.length > 0 && (
+        <div style={{
+          background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.2)',
+          borderRadius: 16, padding: '20px 24px', marginBottom: 24, animation: 'fadeIn 0.4s ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <span style={{ fontSize: 20 }}>⚠️</span>
+            <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--gold)', fontFamily: 'Outfit, sans-serif' }}>Alertas de Férias — próximos 30 dias</span>
+            <span style={{ background: 'var(--gold)', color: '#000', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 800 }}>{upcomingVacations.length}</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {upcomingVacations.map((v) => {
+              const emp = employees.find((e) => e.id === v.employee_id);
+              const days = diffDays(v.start_date);
+              return (
+                <div key={v.id} style={{
+                  background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.18)',
+                  borderRadius: 12, padding: '14px 18px', minWidth: 220, flex: '0 1 auto',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(212,175,55,0.2)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12 }}>{emp?.name?.[0] ?? '?'}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 14 }}>{emp?.name ?? '—'}</div>
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 8 }}>
+                    {fmtDate(v.start_date)} → {fmtDate(v.end_date)}
+                  </div>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                    color: days === 0 ? '#f87171' : days <= 7 ? '#fb923c' : 'var(--gold)',
+                    background: days === 0 ? 'rgba(239,68,68,0.12)' : days <= 7 ? 'rgba(251,146,60,0.12)' : 'rgba(212,175,55,0.12)',
+                  }}>
+                    {days === 0 ? '🔴 Começa hoje!' : days <= 7 ? `🟠 Em ${days} dia${days !== 1 ? 's' : ''}` : `🟡 Em ${days} dias`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Charts Row 1 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }} className="chart-grid-resp">
@@ -108,7 +165,7 @@ export default function DashboardPage() {
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>Absenteísmo — Últimos 7 dias</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={absChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
               <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} />
@@ -120,7 +177,7 @@ export default function DashboardPage() {
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>Absenteísmo por Mês (Ano)</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
               <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} />
@@ -136,7 +193,7 @@ export default function DashboardPage() {
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>Horas Extras por Funcionário</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={heChartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
               <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
               <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} />
@@ -148,7 +205,7 @@ export default function DashboardPage() {
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>Horas Extras por Mês (Ano)</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
               <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} />

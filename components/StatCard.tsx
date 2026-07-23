@@ -17,7 +17,7 @@ export default function StatCard({ icon, value, label, delta, deltaUp = true, ac
   return (
     <div className="card-premium" style={{
       padding: '24px', position: 'relative', overflow: 'hidden',
-      background: 'linear-gradient(135deg, rgba(16,16,16,1) 0%, rgba(0,0,0,1) 100%)'
+      background: 'var(--bg-card)'
     }}>
       {/* background glow effect */}
       <div style={{
@@ -26,7 +26,7 @@ export default function StatCard({ icon, value, label, delta, deltaUp = true, ac
       }} />
       
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
         {delta && (
           <div style={{
             fontSize: 12, fontWeight: 700, padding: '4px 8px', borderRadius: 8,
@@ -39,7 +39,7 @@ export default function StatCard({ icon, value, label, delta, deltaUp = true, ac
         )}
       </div>
 
-      <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1.2, fontFamily: 'Outfit, sans-serif', color: '#fff' }}>{value}</div>
+      <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1.2, fontFamily: 'Outfit, sans-serif', color: 'var(--text-primary)' }}>{value}</div>
       <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 4, fontWeight: 500, fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
     </div>
   );

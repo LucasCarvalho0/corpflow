@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ----------------------------------------------------
+// ENUMS (Tipos padronizados de status)
+// ----------------------------------------------------
+enum EmployeeStatus {
+  Ativo
+  Inativo
+  Afastado
+  Desligado
+}
+
+enum AbsenceType {
+  Falta
+  Atestado
+  Justificada
+  Suspensao
+}
+
+enum OvertimeType {
+  Normal
+  Sabado
+  Domingo
+  Feriado
+  Extra
+}
+
+enum VacationStatus {
+  Agendado
+  EmFerias  @map("Em férias")
+  Concluido @map("Concluído")
+  Cancelado
+}
+
+enum DayOffStatus {
+  Pendente
+  Utilizada
+  Cancelada
+}
+
+// ----------------------------------------------------
+// MODELS (Tabelas do Banco de Dados)
+// ----------------------------------------------------
+
+model Employee {
+  id              Int      @id @default(autoincrement())
+  registration    String   @unique
+  name            String
+  company         String
+  role            String
+  work_schedule   String   @default("08:00 - 17:00")
+  shift           String   @default("Manhã")
+  status          EmployeeStatus @default(Ativo)
+  is_active       Boolean  @default(true) // Deleção Lógica / Soft Delete
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  metadata        Json?    @default("{}")
+
+  // Relacionamentos Fortes
+  absences        Absence[]
+  overtimes       OvertimeEmployee[]
+  vacations       Vacation[]
+  day_offs        DayOff[]
+
+  @@map("employees")
+}
+
+model Absence {
+  id              Int      @id @default(autoincrement())
+  employee_id     Int
+  employee        Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  date            DateTime @db.Date
+  type            AbsenceType @default(Falta)
+  observation     String?
+  attachment_url  String?
+  created_by      String?  // Id do Usuario Supabase (caso logado)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("absences")
+}
+
+model Overtime {
+  id              Int      @id @default(autoincrement())
+  date            DateTime @db.Date
+  type            OvertimeType @default(Normal)
+  description     String?
+  created_by      String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  employees       OvertimeEmployee[]
+
+  @@map("overtime")
+}
+
+// Tabela de Junção de Horas Extras por Funcionário
+model OvertimeEmployee {
+  id              Int      @id @default(autoincrement())
+  overtime_id     Int
+  overtime        Overtime @relation(fields: [overtime_id], references: [id], onDelete: Cascade)
+  employee_id     Int
+  employee        Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  start_time      String   // Em string fixa "HH:MM"
+  end_time        String   // Em string fixa "HH:MM"
+
+  @@unique([overtime_id, employee_id])
+  @@map("overtime_employees")
+}
+
+model Vacation {
+  id              Int      @id @default(autoincrement())
+  employee_id     Int
+  employee        Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  start_date      DateTime @db.Date
+  end_date        DateTime @db.Date
+  observation     String?
+  status          VacationStatus @default(Agendado)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("vacations")
+}
+
+model DayOff {
+  id              Int      @id @default(autoincrement())
+  employee_id     Int
+  employee        Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  date            DateTime @db.Date
+  reason          String
+  status          DayOffStatus @default(Pendente)
+  observation     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("day_offs")
+}
+
+model AuditLog {
+  id              Int      @id @default(autoincrement())
+  user_id         String?  // UUID do criador no front
+  user_email      String
+  action          String
+  table_name      String?
+  record_id       Int?
+  old_data        Json?
+  new_data        Json?
+  detail          String
+  type            String   // Login, Criação, etc.
+  ip_address      String?
+  created_at      DateTime @default(now())
+
+  @@map("audit_log")
+}

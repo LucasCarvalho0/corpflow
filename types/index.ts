@@ -4,6 +4,8 @@ export type EmployeeStatus = 'Ativo' | 'Inativo';
 export type AbsenceType = 'Falta' | 'Atestado' | 'Justificada';
 export type OvertimeType = 'Normal' | 'Sábado' | 'Extra';
 export type AuditActionType = 'Login' | 'Criação' | 'Edição' | 'Exclusão' | 'Exportação';
+export type VacationStatus = 'Agendado' | 'Em férias' | 'Concluído' | 'Cancelado';
+export type DayOffStatus = 'Pendente' | 'Utilizada' | 'Cancelada';
 
 export interface Employee {
   id: number;
@@ -51,6 +53,26 @@ export interface AuditLog {
   action: string;
   detail: string;
   type: AuditType;
+}
+
+export interface Vacation {
+  id: number;
+  employee_id: number;
+  start_date: string;
+  end_date: string;
+  observation?: string;
+  status: VacationStatus;
+  created_at?: string;
+}
+
+export interface DayOff {
+  id: number;
+  employee_id: number;
+  date: string;
+  reason: string;
+  status: DayOffStatus;
+  observation?: string;
+  created_at?: string;
 }
 
 export interface DashboardStats {

@@ -107,3 +107,39 @@ export async function insertAuditLog(data: {
 }) {
   return supabase.from('audit_log').insert([data]);
 }
+
+// ── Vacations ────────────────────────────────────────────────────────────────
+
+export async function fetchVacations() {
+  return supabase.from('vacations').select('*').order('start_date', { ascending: true });
+}
+
+export async function createVacation(data: Omit<import('@/types').Vacation, 'id' | 'created_at'>) {
+  return supabase.from('vacations').insert([data]).select().single();
+}
+
+export async function updateVacation(id: number, data: Partial<import('@/types').Vacation>) {
+  return supabase.from('vacations').update(data).eq('id', id).select().single();
+}
+
+export async function deleteVacation(id: number) {
+  return supabase.from('vacations').delete().eq('id', id);
+}
+
+// ── Day Offs ─────────────────────────────────────────────────────────────────
+
+export async function fetchDayOffs() {
+  return supabase.from('day_offs').select('*').order('date', { ascending: false });
+}
+
+export async function createDayOff(data: Omit<import('@/types').DayOff, 'id' | 'created_at'>) {
+  return supabase.from('day_offs').insert([data]).select().single();
+}
+
+export async function updateDayOff(id: number, data: Partial<import('@/types').DayOff>) {
+  return supabase.from('day_offs').update(data).eq('id', id).select().single();
+}
+
+export async function deleteDayOff(id: number) {
+  return supabase.from('day_offs').delete().eq('id', id);
+}

@@ -2,7 +2,7 @@
 // lib/store.tsx  — Estado global via React Context (integrado com Supabase)
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import type { Employee, Absence, Overtime, AuditLog } from '@/types';
+import type { Employee, Absence, Overtime, AuditLog, Vacation, DayOff } from '@/types';
 import * as db from './supabase';
 import { notify } from '@/components/Notifications';
 
@@ -11,6 +11,8 @@ interface StoreState {
   absences: Absence[];
   overtimes: Overtime[];
   auditLog: AuditLog[];
+  vacations: Vacation[];
+  dayOffs: DayOff[];
   loading: boolean;
 }
 
@@ -24,6 +26,12 @@ interface StoreActions {
   addOvertime: (ot: { date: string; type: string; created_by: string }, emps: { employee_id: number; start_time: string; end_time: string }[]) => Promise<void>;
   deleteOvertime: (id: number) => Promise<void>;
   addAudit: (log: Omit<AuditLog, 'id' | 'created_at'>) => Promise<void>;
+  addVacation: (v: Omit<Vacation, 'id' | 'created_at'>) => Promise<void>;
+  updateVacation: (id: number, data: Partial<Vacation>) => Promise<void>;
+  deleteVacation: (id: number) => Promise<void>;
+  addDayOff: (d: Omit<DayOff, 'id' | 'created_at'>) => Promise<void>;
+  updateDayOff: (id: number, data: Partial<DayOff>) => Promise<void>;
+  deleteDayOff: (id: number) => Promise<void>;
 }
 
 const StoreContext = createContext<(StoreState & StoreActions) | null>(null);
@@ -33,16 +41,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [absences, setAbsences] = useState<Absence[]>([]);
   const [overtimes, setOvertimes] = useState<Overtime[]>([]);
   const [auditLog, setAuditLog] = useState<AuditLog[]>([]);
+  const [vacations, setVacations] = useState<Vacation[]>([]);
+  const [dayOffs, setDayOffs] = useState<DayOff[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refreshData = useCallback(async () => {
     setLoading(true);
     try {
-      const [{ data: emps }, { data: abs }, { data: ots }, { data: logs }] = await Promise.all([
+      const [{ data: emps }, { data: abs }, { data: ots }, { data: logs }, { data: vacs }, { data: dos }] = await Promise.all([
         db.fetchEmployees(),
         db.fetchAbsences(),
         db.fetchOvertimes(),
         db.fetchAuditLog(),
+        db.fetchVacations(),
+        db.fetchDayOffs(),
       ]);
       if (emps) setEmployees(emps);
       if (abs) setAbsences(abs);
@@ -58,6 +70,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setOvertimes(mappedOts as Overtime[]);
       }
       if (logs) setAuditLog(logs as any);
+      if (vacs) setVacations(vacs as Vacation[]);
+      if (dos) setDayOffs(dos as DayOff[]);
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       notify('Erro ao sincronizar dados', 'error');
@@ -140,10 +154,73 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ── Vacations ──────────────────────────────────────────────────────────────
+
+  const addVacation = async (v: Omit<Vacation, 'id' | 'created_at'>) => {
+    const { data, error } = await db.createVacation(v);
+    if (!error && data) {
+      setVacations((s) => [...s, data as Vacation].sort((a, b) => a.start_date.localeCompare(b.start_date)));
+    } else {
+      throw error || new Error('Erro ao registrar férias');
+    }
+  };
+
+  const updateVacation = async (id: number, data: Partial<Vacation>) => {
+    const { error, data: updated } = await db.updateVacation(id, data);
+    if (!error && updated) {
+      setVacations((s) => s.map((v) => (v.id === id ? updated as Vacation : v)));
+    } else {
+      throw error || new Error('Erro ao atualizar férias');
+    }
+  };
+
+  const deleteVacation = async (id: number) => {
+    const { error } = await db.deleteVacation(id);
+    if (!error) {
+      setVacations((s) => s.filter((v) => v.id !== id));
+    } else {
+      throw error || new Error('Erro ao excluir férias');
+    }
+  };
+
+  // ── Day Offs ───────────────────────────────────────────────────────────────
+
+  const addDayOff = async (d: Omit<DayOff, 'id' | 'created_at'>) => {
+    const { data, error } = await db.createDayOff(d);
+    if (!error && data) {
+      setDayOffs((s) => [data as DayOff, ...s]);
+    } else {
+      throw error || new Error('Erro ao registrar folga');
+    }
+  };
+
+  const updateDayOff = async (id: number, data: Partial<DayOff>) => {
+    const { error, data: updated } = await db.updateDayOff(id, data);
+    if (!error && updated) {
+      setDayOffs((s) => s.map((d) => (d.id === id ? updated as DayOff : d)));
+    } else {
+      throw error || new Error('Erro ao atualizar folga');
+    }
+  };
+
+  const deleteDayOff = async (id: number) => {
+    const { error } = await db.deleteDayOff(id);
+    if (!error) {
+      setDayOffs((s) => s.filter((d) => d.id !== id));
+    } else {
+      throw error || new Error('Erro ao excluir folga');
+    }
+  };
+
   return (
     <StoreContext.Provider value={{ 
-      employees, absences, overtimes, auditLog, loading, 
-      refreshData, addEmployee, updateEmployee, deleteEmployee, addAbsence, deleteAbsence, addOvertime, deleteOvertime, addAudit 
+      employees, absences, overtimes, auditLog, vacations, dayOffs, loading, 
+      refreshData, addEmployee, updateEmployee, deleteEmployee,
+      addAbsence, deleteAbsence,
+      addOvertime, deleteOvertime,
+      addAudit,
+      addVacation, updateVacation, deleteVacation,
+      addDayOff, updateDayOff, deleteDayOff,
     }}>
       {children}
     </StoreContext.Provider>

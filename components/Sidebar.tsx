@@ -8,6 +8,8 @@ const NAV = [
   { icon: '📋', label: 'Absenteísmo', href: '/absences', section: 'Módulos' },
   { icon: '⏱️', label: 'Hora Extra', href: '/overtime', section: 'Módulos' },
   { icon: '📅', label: 'Hora Extra / Fim de Semana', href: '/overtime-saturday', section: 'Módulos' },
+  { icon: '🏖️', label: 'Férias', href: '/vacations', section: 'Módulos' },
+  { icon: '🗓️', label: 'Folgas', href: '/day-offs', section: 'Módulos' },
   { icon: '📤', label: 'Relatórios', href: '/reports', section: 'Sistema' },
   { icon: '🔍', label: 'Auditoria', href: '/audit', section: 'Sistema' },
 ];
@@ -46,7 +48,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
       <nav style={{
         position: 'fixed', left: 0, top: 0, bottom: 0, width: 240,
-        background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(16px)',
+        background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(16px)',
         borderRight: '1px solid var(--border)',
         display: 'flex', flexDirection: 'column', zIndex: 100,
         transform: open ? 'translateX(0)' : 'translateX(-100%)',
@@ -56,7 +58,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         <div style={{ padding: '24px 16px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px' }}>
             <img src="/icons/icon-192.png" alt="CorpFlow" style={{ width: 42, height: 42, borderRadius: 10, boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)' }} />
-            <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.8, color: '#fff', fontFamily: 'Outfit, sans-serif' }}>
+            <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.8, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
               Corp<span style={{ color: 'var(--gold)' }}>Flow</span>
             </span>
           </div>
@@ -93,24 +95,24 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         {/* Footer - fixed at bottom */}
-        <div style={{ padding: '16px 16px 24px', borderTop: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 16px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px' }}>
             <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, #ae8625 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: 14, color: '#000', border: '2px solid rgba(255,255,255,0.1)' }}>LC</div>
+              fontWeight: 800, fontSize: 14, color: '#fff', border: '2px solid rgba(0,0,0,0.05)' }}>LC</div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: 'Outfit, sans-serif' }}>Lucas Carvalho</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>Lucas Carvalho</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Gestor Administrativo</div>
             </div>
           </div>
           <button onClick={logout} style={{
-            width: '100%', marginTop: 12, background: 'rgba(255,255,255,0.03)',
+            width: '100%', marginTop: 12, background: 'var(--bg-base)',
             border: '1px solid var(--border)', borderRadius: 10, padding: '10px',
             color: 'var(--text-muted)', fontFamily: 'Outfit, sans-serif',
             fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
           }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = '#f87171'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.05)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg-base)'; }}
           >
             Sair do sistema
           </button>

@@ -100,7 +100,7 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="card-premium" style={{ padding: 28, background: 'linear-gradient(180deg, #111 0%, #080808 100%)' }}>
+      <div className="card-premium" style={{ padding: 28, background: 'var(--bg-card)' }}>
         {/* Filters */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>

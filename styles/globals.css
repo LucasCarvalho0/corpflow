@@ -5,23 +5,23 @@
 @tailwind utilities;
 
 :root {
-  --bg-base: #000000;
-  --bg-surface: #070707;
-  --bg-card: #111111;
-  --bg-glass: rgba(0, 0, 0, 0.6);
+  --bg-base: #ffffff;
+  --bg-surface: #f8fafc;
+  --bg-card: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.8);
   --gold: #d4af37;
   --gold-dark: #ae8625;
   --gold-glow: rgba(212, 175, 55, 0.3);
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.04);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.05);
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
   --info: #3b82f6;
-  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 15px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 * { box-sizing: border-box; }
@@ -74,7 +74,7 @@ body {
 }
 .field-input:focus {
   border-color: var(--gold);
-  background: #000;
+  background: #ffffff;
   box-shadow: 0 0 0 1px var(--gold-glow);
 }
 .field-input::placeholder { color: var(--text-muted); }

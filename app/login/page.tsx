@@ -74,20 +74,20 @@ export default function LoginPage() {
       <div className="animate-slideUp card-premium" style={{
         padding: '56px 48px', width: 440, maxWidth: '95vw',
         position: 'relative', zIndex: 1,
-        background: 'linear-gradient(180deg, #111 0%, #050505 100%)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(212,175,55,0.05)',
+        background: 'var(--bg-surface)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 40px rgba(212,175,55,0.05)',
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40 }}>
           <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, var(--gold) 0%, #ae8625 100%)', borderRadius: 12,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: 800, fontSize: 20, color: '#000', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)' }}>CF</div>
-          <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: -1, color: '#fff' }}>
+          <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: -1, color: 'var(--text-primary)' }}>
             Corp<span style={{ color: 'var(--gold)' }}>Flow</span>
           </span>
         </div>
 
-        <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5, color: '#fff' }}>Acesso Restrito</div>
+        <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5, color: 'var(--text-primary)' }}>Acesso Restrito</div>
         <div style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 40, fontWeight: 500 }}>
           Bem-vindo ao centro de gestão CorpFlow
         </div>
