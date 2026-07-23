@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Notifications from './Notifications';
-import { supabase } from '@/lib/supabase';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -13,10 +12,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function checkAuth() {
-      const { data } = await supabase.auth.getSession();
       const isMaster = localStorage.getItem('isMasterAuthenticated') === 'true';
 
-      if (!data.session && !isMaster) {
+      if (!isMaster) {
         router.push('/login');
       } else {
         setChecking(false);
