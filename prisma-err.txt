@@ -1,0 +1,23 @@
+PrismaClientInitializationError: PrismaClient was instantiated without any options. A driver adapter is required to connect to your database.
+
+Pass a driver adapter to the PrismaClient constructor, for example:
+
+  import { PrismaPg } from '@prisma/adapter-pg'
+  import { PrismaClient } from './generated/prisma/client'
+
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+  const prisma = new PrismaClient({ adapter })
+
+Learn more about driver adapters: https://pris.ly/d/driver-adapters
+
+If you use Prisma Accelerate instead of connecting to your database directly, pass `accelerateUrl` to the PrismaClient constructor instead of `adapter`.
+    at new t (C:\Users\llc11\Downloads\projetos-reais\corpflow\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:390:15)
+    at main (C:\Users\llc11\Downloads\projetos-reais\corpflow\test-prisma.ts:6:20)
+    at fs (C:\Users\llc11\Downloads\projetos-reais\corpflow\test-prisma.ts:23:1)
+    at Object.<anonymous> (C:\Users\llc11\Downloads\projetos-reais\corpflow\test-prisma.ts:23:6)
+    at Module._compile (node:internal/modules/cjs/loader:1554:14)
+    at Object.transformer (C:\Users\llc11\Downloads\projetos-reais\corpflow\node_modules\tsx\dist\register-BOkp8V6j.cjs:9:3176)
+    at Module.load (node:internal/modules/cjs/loader:1289:32)
+    at Function._load (node:internal/modules/cjs/loader:1108:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:220:24)
