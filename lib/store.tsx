@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import type { Employee, Absence, Overtime, AuditLog, Vacation, DayOff } from '@/types';
-import * as db from './supabase';
+import * as db from './actions';
 import { notify } from '@/components/Notifications';
 
 interface StoreState {

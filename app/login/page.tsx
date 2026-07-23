@@ -20,37 +20,15 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { signIn } = await import('@/lib/supabase');
-
       // Master Access Fallback for the user
       if (email === 'lucascarvalho@corpflow.com' && password === 'corpflow.2026') {
-        const { signIn, signUp } = await import('@/lib/supabase');
-        
-        // Tenta entrar silenciosamente no Supabase para garantir sessão (RLS)
-        const { error: authError } = await signIn(email, password);
-        
-        if (authError) {
-          // Se o usuário não existir no novo projeto, tentamos cadastrar automaticamente
-          await signUp(email, password).catch(() => null);
-          // Tenta entrar novamente após o cadastro/tentativa
-          await signIn(email, password).catch(() => null);
-        }
-
-        // Marcamos uma sessão persistente no navegador para o acesso mestre
-        // Isso sobrevive a atualizações e reinicializações do PWA
         localStorage.setItem('isMasterAuthenticated', 'true');
         router.push('/dashboard');
         return;
       }
 
-      const { error: authError } = await signIn(email, password);
-      
-      if (authError) {
-        setError('Email ou senha inválidos.');
-        setLoading(false);
-      } else {
-        router.push('/dashboard');
-      }
+      setError('Autenticação desativada na migração para o Prisma. Use a conta master.');
+      setLoading(false);
     } catch (e) {
       setError('Ocorreu um erro ao tentar entrar.');
       setLoading(false);
