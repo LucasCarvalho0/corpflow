@@ -58,17 +58,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ]);
       if (emps) setEmployees(emps);
       if (abs) setAbsences(abs);
-      if (ots) {
-        const mappedOts = (ots as any[]).map((ot) => ({
-          ...ot,
-          employees: ot.overtime_employees?.map((oe: any) => ({
-            employee_id: oe.employee_id,
-            start: oe.start_time,
-            end: oe.end_time,
-          })) || [],
-        }));
-        setOvertimes(mappedOts as Overtime[]);
-      }
+      if (ots) setOvertimes(ots as Overtime[]);
       if (logs) setAuditLog(logs as any);
       if (vacs) setVacations(vacs as Vacation[]);
       if (dos) setDayOffs(dos as DayOff[]);
