@@ -2,6 +2,53 @@
 
 import prisma from './prisma';
 
+// ── Serialização de Datas ─────────────────────────────────────────────────────
+// O Prisma retorna campos DateTime como objetos Date do JS.
+// Estas funções convertem cada entidade para o formato de string que o cliente espera (YYYY-MM-DD),
+// evitando erros de runtime como "includes is not a function" nos componentes.
+
+function toDateStr(d: Date | string | null | undefined): string {
+  if (!d) return '';
+  if (typeof d === 'string') return d.slice(0, 10);
+  return d.toISOString().slice(0, 10);
+}
+
+function serializeAbsence(a: any) {
+  return { ...a, date: toDateStr(a.date), created_at: toDateStr(a.created_at), updated_at: toDateStr(a.updated_at) };
+}
+
+function serializeOvertime(o: any) {
+  return {
+    ...o,
+    date: toDateStr(o.date),
+    created_at: toDateStr(o.created_at),
+    updated_at: toDateStr(o.updated_at),
+    employees: (o.employees || o.overtime_employees || []).map((oe: any) => ({
+      employee_id: oe.employee_id,
+      start: oe.start_time,
+      end: oe.end_time,
+    })),
+  };
+}
+
+function serializeVacation(v: any) {
+  return {
+    ...v,
+    start_date: toDateStr(v.start_date),
+    end_date: toDateStr(v.end_date),
+    created_at: toDateStr(v.created_at),
+    updated_at: toDateStr(v.updated_at),
+  };
+}
+
+function serializeDayOff(d: any) {
+  return { ...d, date: toDateStr(d.date), created_at: toDateStr(d.created_at), updated_at: toDateStr(d.updated_at) };
+}
+
+function serializeAuditLog(l: any) {
+  return { ...l, created_at: toDateStr(l.created_at) };
+}
+
 // Helper for wrapping Prisma results to match the expected format { data, error }
 async function handleAction(action: () => Promise<any>): Promise<{ data: any; error: any }> {
   try {
@@ -34,19 +81,19 @@ export async function deleteEmployee(id: number) {
 // ── Absences ────────────────────────────────────────────────────────────────
 
 export async function fetchAbsences(startDate?: string, endDate?: string) {
-  return handleAction(() => {
+  const { data, error } = await handleAction(() => {
     let where: any = {};
     if (startDate) where.date = { ...where.date, gte: new Date(startDate) };
     if (endDate) where.date = { ...where.date, lte: new Date(endDate) };
     return prisma.absence.findMany({ where, orderBy: { date: 'desc' } });
   });
+  return { data: data ? data.map(serializeAbsence) : null, error };
 }
 
 export async function createAbsence(data: any) {
-  if (data.date) {
-    data.date = new Date(data.date);
-  }
-  return handleAction(() => prisma.absence.create({ data }));
+  if (data.date) data.date = new Date(data.date);
+  const result = await handleAction(() => prisma.absence.create({ data }));
+  return { data: result.data ? serializeAbsence(result.data) : null, error: result.error };
 }
 
 export async function deleteAbsence(id: number) {
@@ -56,23 +103,22 @@ export async function deleteAbsence(id: number) {
 // ── Overtime ────────────────────────────────────────────────────────────────
 
 export async function fetchOvertimes() {
-  return handleAction(() =>
+  const { data, error } = await handleAction(() =>
     prisma.overtime.findMany({
-      include: {
-        employees: true,
-      },
+      include: { employees: true },
       orderBy: { date: 'desc' },
     })
   );
+  return { data: data ? data.map(serializeOvertime) : null, error };
 }
 
 export async function createOvertime(
   overtimeData: { date: string; type: any; created_by?: string; description?: string },
   employees: { employee_id: number; start_time: string; end_time: string }[]
 ) {
-  return handleAction(async () => {
+  const result = await handleAction(async () => {
     const otDate = new Date(overtimeData.date);
-    const result = await prisma.overtime.create({
+    return prisma.overtime.create({
       data: {
         ...overtimeData,
         date: otDate,
@@ -84,12 +130,10 @@ export async function createOvertime(
           })),
         },
       },
-      include: {
-        employees: true,
-      },
+      include: { employees: true },
     });
-    return result;
   });
+  return { data: result.data ? serializeOvertime(result.data) : null, error: result.error };
 }
 
 export async function deleteOvertime(id: number) {
@@ -99,7 +143,10 @@ export async function deleteOvertime(id: number) {
 // ── Audit Log ───────────────────────────────────────────────────────────────
 
 export async function fetchAuditLog() {
-  return handleAction(() => prisma.auditLog.findMany({ orderBy: { created_at: 'desc' }, take: 200 }));
+  const { data, error } = await handleAction(() =>
+    prisma.auditLog.findMany({ orderBy: { created_at: 'desc' }, take: 200 })
+  );
+  return { data: data ? data.map(serializeAuditLog) : null, error };
 }
 
 export async function insertAuditLog(data: any) {
@@ -109,19 +156,24 @@ export async function insertAuditLog(data: any) {
 // ── Vacations ────────────────────────────────────────────────────────────────
 
 export async function fetchVacations() {
-  return handleAction(() => prisma.vacation.findMany({ orderBy: { start_date: 'asc' } }));
+  const { data, error } = await handleAction(() =>
+    prisma.vacation.findMany({ orderBy: { start_date: 'asc' } })
+  );
+  return { data: data ? data.map(serializeVacation) : null, error };
 }
 
 export async function createVacation(data: any) {
   if (data.start_date) data.start_date = new Date(data.start_date);
   if (data.end_date) data.end_date = new Date(data.end_date);
-  return handleAction(() => prisma.vacation.create({ data }));
+  const result = await handleAction(() => prisma.vacation.create({ data }));
+  return { data: result.data ? serializeVacation(result.data) : null, error: result.error };
 }
 
 export async function updateVacation(id: number, data: any) {
   if (data.start_date) data.start_date = new Date(data.start_date);
   if (data.end_date) data.end_date = new Date(data.end_date);
-  return handleAction(() => prisma.vacation.update({ where: { id }, data }));
+  const result = await handleAction(() => prisma.vacation.update({ where: { id }, data }));
+  return { data: result.data ? serializeVacation(result.data) : null, error: result.error };
 }
 
 export async function deleteVacation(id: number) {
@@ -131,17 +183,22 @@ export async function deleteVacation(id: number) {
 // ── Day Offs ─────────────────────────────────────────────────────────────────
 
 export async function fetchDayOffs() {
-  return handleAction(() => prisma.dayOff.findMany({ orderBy: { date: 'desc' } }));
+  const { data, error } = await handleAction(() =>
+    prisma.dayOff.findMany({ orderBy: { date: 'desc' } })
+  );
+  return { data: data ? data.map(serializeDayOff) : null, error };
 }
 
 export async function createDayOff(data: any) {
   if (data.date) data.date = new Date(data.date);
-  return handleAction(() => prisma.dayOff.create({ data }));
+  const result = await handleAction(() => prisma.dayOff.create({ data }));
+  return { data: result.data ? serializeDayOff(result.data) : null, error: result.error };
 }
 
 export async function updateDayOff(id: number, data: any) {
   if (data.date) data.date = new Date(data.date);
-  return handleAction(() => prisma.dayOff.update({ where: { id }, data }));
+  const result = await handleAction(() => prisma.dayOff.update({ where: { id }, data }));
+  return { data: result.data ? serializeDayOff(result.data) : null, error: result.error };
 }
 
 export async function deleteDayOff(id: number) {
