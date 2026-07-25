@@ -118,9 +118,11 @@ export async function createOvertime(
 ) {
   const result = await handleAction(async () => {
     const otDate = new Date(overtimeData.date);
+    const mappedType = overtimeData.type === 'Sábado' ? 'Sabado' : overtimeData.type;
     return prisma.overtime.create({
       data: {
         ...overtimeData,
+        type: mappedType,
         date: otDate,
         employees: {
           create: employees.map((emp) => ({
@@ -165,6 +167,10 @@ export async function fetchVacations() {
 export async function createVacation(data: any) {
   if (data.start_date) data.start_date = new Date(data.start_date);
   if (data.end_date) data.end_date = new Date(data.end_date);
+  
+  if (data.status === 'Em férias') data.status = 'EmFerias';
+  if (data.status === 'Concluído') data.status = 'Concluido';
+
   const result = await handleAction(() => prisma.vacation.create({ data }));
   return { data: result.data ? serializeVacation(result.data) : null, error: result.error };
 }
@@ -172,6 +178,10 @@ export async function createVacation(data: any) {
 export async function updateVacation(id: number, data: any) {
   if (data.start_date) data.start_date = new Date(data.start_date);
   if (data.end_date) data.end_date = new Date(data.end_date);
+  
+  if (data.status === 'Em férias') data.status = 'EmFerias';
+  if (data.status === 'Concluído') data.status = 'Concluido';
+
   const result = await handleAction(() => prisma.vacation.update({ where: { id }, data }));
   return { data: result.data ? serializeVacation(result.data) : null, error: result.error };
 }

@@ -79,7 +79,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setEmployees((s) => [...s, data]);
     } else {
-      throw error || new Error('Erro ao cadastrar funcionário');
+      throw error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Erro ao cadastrar funcionário');
     }
   };
 
@@ -106,7 +106,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setAbsences((s) => [data, ...s]);
     } else {
-      throw error || new Error('Erro ao registrar ausência');
+      throw error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Erro ao registrar ausência');
     }
   };
 
@@ -124,7 +124,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error) {
       await refreshData();
     } else {
-      throw error || new Error('Erro ao criar escala');
+      throw error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Erro ao criar escala');
     }
   };
 
@@ -151,7 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setVacations((s) => [...s, data as Vacation].sort((a, b) => a.start_date.localeCompare(b.start_date)));
     } else {
-      throw error || new Error('Erro ao registrar férias');
+      throw error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Erro ao registrar férias');
     }
   };
 
@@ -180,7 +180,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       setDayOffs((s) => [data as DayOff, ...s]);
     } else {
-      throw error || new Error('Erro ao registrar folga');
+      throw error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Erro ao registrar folga');
     }
   };
 
