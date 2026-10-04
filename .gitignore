@@ -26,3 +26,6 @@ build_output.txt
 .vercel
 
 /lib/generated/prisma
+public/sw.js
+public/sw.js.map
+public/workbox-*.js

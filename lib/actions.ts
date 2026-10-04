@@ -21,6 +21,7 @@ function serializeOvertime(o: any) {
   return {
     ...o,
     date: toDateStr(o.date),
+    type: o.type === 'Sabado' ? 'Sábado' : o.type,
     created_at: toDateStr(o.created_at),
     updated_at: toDateStr(o.updated_at),
     employees: (o.employees || o.overtime_employees || []).map((oe: any) => ({
@@ -118,7 +119,10 @@ export async function createOvertime(
 ) {
   const result = await handleAction(async () => {
     const otDate = new Date(overtimeData.date);
-    const mappedType = overtimeData.type === 'Sábado' ? 'Sabado' : overtimeData.type;
+    let mappedType = overtimeData.type;
+    if (mappedType === 'Sábado' || mappedType === 'Fim de Semana') {
+      mappedType = 'Sabado';
+    }
     return prisma.overtime.create({
       data: {
         ...overtimeData,

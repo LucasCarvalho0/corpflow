@@ -12,7 +12,7 @@ import { exportOvertimeToPDF, exportOvertimeToExcel } from '@/lib/export';
 function today() { return new Date().toISOString().slice(0, 10); }
 function fmtDate(d: string) { if (!d) return ''; const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; }
 
-const TYPE_PILL: Record<string, string> = { Normal: 'pill-green', Sábado: 'pill-yellow', Extra: 'pill-red', 'Fim de Semana': 'pill-yellow' };
+const TYPE_PILL: Record<string, string> = { Normal: 'pill-green', Sábado: 'pill-yellow', Sabado: 'pill-yellow', Domingo: 'pill-yellow', Extra: 'pill-red', 'Fim de Semana': 'pill-yellow' };
 
 export default function OvertimeSaturdayPage() {
   const { employees, overtimes, addOvertime, deleteOvertime, addAudit } = useStore();
@@ -42,7 +42,7 @@ export default function OvertimeSaturdayPage() {
   }), [activeEmps, empSearch]);
 
   const filteredOTs = useMemo(() => overtimes.filter((o) => {
-    if (o.type !== 'Sábado') return false;
+    if (o.type !== 'Sábado' && o.type !== 'Sabado' && o.type !== 'Domingo' && o.type !== 'Fim de Semana') return false;
     if (filterMonth && !o.date.startsWith(filterMonth)) return false;
     return true;
   }).sort((a, b) => b.date.localeCompare(a.date)), [overtimes, filterMonth]);

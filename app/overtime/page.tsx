@@ -43,7 +43,13 @@ export default function OvertimePage() {
   }), [activeEmps, empSearch]);
 
   const filteredOTs = useMemo(() => overtimes.filter((o) => {
-    if (filterType && o.type !== filterType) return false;
+    if (filterType) {
+      if (filterType === 'Sábado' && (o.type === 'Sábado' || o.type === 'Sabado')) {
+        // match
+      } else if (o.type !== filterType) {
+        return false;
+      }
+    }
     if (filterMonth && !o.date.startsWith(filterMonth)) return false;
     return true;
   }).sort((a, b) => b.date.localeCompare(a.date)), [overtimes, filterType, filterMonth]);
