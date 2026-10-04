@@ -9,6 +9,18 @@ import { notify } from '@/components/Notifications';
 import type { Employee } from '@/types';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '@/lib/export';
 
+const TERMINATION_REASONS = [
+  'Demissão sem justa causa',
+  'Pedido de demissão',
+  'Demissão por justa causa',
+  'Fim de contrato',
+  'Aposentadoria',
+  'Outro',
+];
+
+function today() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(d: string) { if (!d) return ''; const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; }
+
 const COMPANIES = ['Sesé', 'Ourho'];
 const SCHEDULES = ['16:38 às 02:00'];
 const SHIFTS = ['Turno Noite'];
@@ -25,6 +37,13 @@ export default function EmployeesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(blank());
+
+  // Deactivation modal state
+  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [deactivateEmp, setDeactivateEmp] = useState<Employee | null>(null);
+  const [terminationDate, setTerminationDate] = useState(today());
+  const [terminationReason, setTerminationReason] = useState(TERMINATION_REASONS[0]);
+  const [terminationObs, setTerminationObs] = useState('');
 
   const filtered = useMemo(() => employees.filter((e) => {
     if (search && !e.name.toLowerCase().includes(search.toLowerCase()) && !e.registration.includes(search)) return false;
@@ -62,14 +81,51 @@ export default function EmployeesPage() {
     }
   }
 
-  async function toggleStatus(emp: Employee) {
-    const next = emp.status === 'Ativo' ? 'Inativo' : 'Ativo';
+  // Opens deactivation modal when going Ativo → Inativo; reactivates directly otherwise
+  function handleToggleStatus(emp: Employee) {
+    if (emp.status === 'Ativo') {
+      setDeactivateEmp(emp);
+      setTerminationDate(today());
+      setTerminationReason(TERMINATION_REASONS[0]);
+      setTerminationObs('');
+      setDeactivateModalOpen(true);
+    } else {
+      reactivate(emp);
+    }
+  }
+
+  async function reactivate(emp: Employee) {
     try {
-      await updateEmployee(emp.id, { status: next });
-      await addAudit({ user_email: 'Admin', action: 'Edição', detail: `Status de ${emp.name} alterado para ${next}`, type: 'Edição' });
-      notify(`Status alterado para ${next}`);
+      await updateEmployee(emp.id, { status: 'Ativo' });
+      await addAudit({ user_email: 'Admin', action: 'Edição', detail: `Funcionário ${emp.name} reativado no sistema`, type: 'Edição' });
+      notify(`${emp.name} foi reativado com sucesso`);
     } catch (e) {
-      notify('Erro ao alterar status', 'error');
+      notify('Erro ao reativar funcionário', 'error');
+    }
+  }
+
+  async function confirmDeactivation() {
+    if (!deactivateEmp) return;
+    if (!terminationDate) { notify('Informe a data de saída', 'error'); return; }
+    try {
+      const terminationMeta = {
+        termination_date: terminationDate,
+        termination_reason: terminationReason,
+        termination_obs: terminationObs || undefined,
+        terminated_at: new Date().toISOString(),
+      };
+      await updateEmployee(deactivateEmp.id, { status: 'Inativo', metadata: terminationMeta });
+      await addAudit({
+        user_email: 'Admin',
+        action: 'Edição',
+        detail: `Funcionário ${deactivateEmp.name} (Matrícula: ${deactivateEmp.registration}) desligado em ${fmtDate(terminationDate)}. Empresa: ${deactivateEmp.company}. Cargo: ${deactivateEmp.role}. Turno: ${deactivateEmp.shift}. Horário: ${deactivateEmp.work_schedule}. Motivo: ${terminationReason}${terminationObs ? `. Obs: ${terminationObs}` : ''}`,
+        type: 'Edição',
+      });
+      notify(`${deactivateEmp.name} foi marcado como inativo`);
+      setDeactivateModalOpen(false);
+      setDeactivateEmp(null);
+    } catch (e) {
+      notify('Erro ao desativar funcionário', 'error');
     }
   }
 
@@ -136,7 +192,7 @@ export default function EmployeesPage() {
                   <td><span className={`pill ${e.status === 'Ativo' ? 'pill-green' : 'pill-gray'}`}>{e.status}</span></td>
                   <td><div style={{ display: 'flex', gap: 6 }}>
                     <Btn size="sm" onClick={() => openEdit(e)} title="Editar">✏️</Btn>
-                    <Btn size="sm" variant={e.status === 'Ativo' ? 'danger' : 'gold'} onClick={() => toggleStatus(e)} title={e.status === 'Ativo' ? 'Desativar' : 'Ativar'}>
+                    <Btn size="sm" variant={e.status === 'Ativo' ? 'danger' : 'gold'} onClick={() => handleToggleStatus(e)} title={e.status === 'Ativo' ? 'Desativar funcionário' : 'Reativar funcionário'}>
                       {e.status === 'Ativo' ? '🚫' : '✅'}
                     </Btn>
                     <Btn size="sm" variant="danger" onClick={() => remove(e)} title="Excluir">🗑️</Btn>
@@ -148,7 +204,7 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ── Cadastro / Edição Modal ── */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editId ? 'Editar Funcionário' : 'Novo Funcionário'}
         footer={<><Btn onClick={() => setModalOpen(false)}>Cancelar</Btn><Btn variant="gold" onClick={save}>Salvar Funcionário</Btn></>}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -181,6 +237,89 @@ export default function EmployeesPage() {
             <select className="field-input" value={form.shift} onChange={F('shift')}>{SHIFTS.map((s) => <option key={s}>{s}</option>)}</select>
           </div>
         </div>
+      </Modal>
+
+      {/* ── Modal de Desligamento ── */}
+      <Modal
+        open={deactivateModalOpen}
+        onClose={() => setDeactivateModalOpen(false)}
+        title="Registrar Desligamento"
+        maxWidth={560}
+        footer={
+          <>
+            <Btn onClick={() => setDeactivateModalOpen(false)}>Cancelar</Btn>
+            <Btn variant="danger" onClick={confirmDeactivation}>🚫 Confirmar Desligamento</Btn>
+          </>
+        }
+      >
+        {deactivateEmp && (
+          <div>
+            {/* Employee summary card */}
+            <div style={{
+              background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)',
+              borderRadius: 12, padding: '16px 20px', marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                ⚠️ Funcionário a ser desligado
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px' }}>
+                {([
+                  ['Nome', deactivateEmp.name],
+                  ['Matrícula', deactivateEmp.registration],
+                  ['Empresa', deactivateEmp.company],
+                  ['Cargo', deactivateEmp.role],
+                  ['Horário', deactivateEmp.work_schedule],
+                  ['Turno', deactivateEmp.shift],
+                ] as [string, string][]).map(([label, value]) => (
+                  <div key={label}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Termination fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>Data de Saída *</div>
+                <input
+                  className="field-input"
+                  type="date"
+                  value={terminationDate}
+                  onChange={(e) => setTerminationDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>Motivo do Desligamento *</div>
+                <select
+                  className="field-input"
+                  value={terminationReason}
+                  onChange={(e) => setTerminationReason(e.target.value)}
+                >
+                  {TERMINATION_REASONS.map((r) => <option key={r}>{r}</option>)}
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>Observação (opcional)</div>
+                <input
+                  className="field-input"
+                  placeholder="Informações adicionais sobre o desligamento..."
+                  value={terminationObs}
+                  onChange={(e) => setTerminationObs(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div style={{
+              marginTop: 18, padding: '10px 14px', background: 'rgba(250,204,21,0.06)',
+              border: '1px solid rgba(250,204,21,0.15)', borderRadius: 8,
+              fontSize: 12, color: 'var(--text-secondary)',
+            }}>
+              💡 O funcionário ficará salvo no sistema como <strong style={{ color: 'var(--gold)' }}>Inativo</strong>. O registro completo de desligamento será salvo no log de auditoria.
+            </div>
+          </div>
+        )}
       </Modal>
     </AppShell>
   );

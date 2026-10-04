@@ -1,8 +1,15 @@
 // types/index.ts
 
 export type EmployeeStatus = 'Ativo' | 'Inativo';
+
+export interface TerminationInfo {
+  termination_date: string;      // YYYY-MM-DD
+  termination_reason: string;    // Motivo do desligamento
+  termination_obs?: string;      // Observação opcional
+  terminated_at: string;         // ISO timestamp de quando foi registrado
+}
 export type AbsenceType = 'Falta' | 'Atestado' | 'Justificada';
-export type OvertimeType = 'Normal' | 'Sábado' | 'Extra';
+export type OvertimeType = 'Normal' | 'Sábado' | 'Sabado' | 'Domingo' | 'Feriado' | 'Extra' | 'Fim de Semana';
 export type AuditActionType = 'Login' | 'Criação' | 'Edição' | 'Exclusão' | 'Exportação';
 export type VacationStatus = 'Agendado' | 'Em férias' | 'Concluído' | 'Cancelado';
 export type DayOffStatus = 'Pendente' | 'Utilizada' | 'Cancelada';
@@ -17,6 +24,7 @@ export interface Employee {
   shift: string;
   status: EmployeeStatus;
   created_at?: string;
+  metadata?: TerminationInfo | Record<string, any> | null;
 }
 
 export interface Absence {

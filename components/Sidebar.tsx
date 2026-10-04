@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 const NAV = [
   { icon: '📊', label: 'Dashboard', href: '/dashboard', section: 'Principal' },
   { icon: '👤', label: 'Funcionário', href: '/employees', section: 'Módulos' },
+  { icon: '🚫', label: 'Inativos / Desligados', href: '/inactive-employees', section: 'Módulos' },
   { icon: '📋', label: 'Absenteísmo', href: '/absences', section: 'Módulos' },
   { icon: '⏱️', label: 'Hora Extra', href: '/overtime', section: 'Módulos' },
   { icon: '📅', label: 'Hora Extra / Fim de Semana', href: '/overtime-saturday', section: 'Módulos' },
