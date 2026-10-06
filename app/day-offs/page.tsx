@@ -229,8 +229,8 @@ export default function DayOffsPage() {
                       </div>
                     </td>
                     <td style={{ color: 'var(--text-secondary)' }}>{emp?.company ?? '—'}</td>
-                    <td style={{ maxWidth: 200 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{d.reason}</span>
+                    <td style={{ maxWidth: 220 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{d.reason}</span>
                     </td>
                     <td>
                       <span className={`pill ${STATUS_PILL[d.status]}`}>

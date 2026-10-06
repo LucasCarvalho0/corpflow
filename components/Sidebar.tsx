@@ -15,6 +15,8 @@ const NAV = [
   { icon: '🔍', label: 'Auditoria', href: '/audit', section: 'Sistema' },
 ];
 
+import { useState, useEffect } from 'react';
+
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
@@ -25,6 +27,28 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   let lastSection = '';
 
+  const [user, setUser] = useState({
+    name: 'Lucas Carvalho',
+    role: 'Gestor Administrativo',
+    initials: 'LC',
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.name) {
+          setUser({
+            name: parsed.name,
+            role: parsed.role || 'Gestão de Pessoas',
+            initials: parsed.initials || parsed.name.slice(0, 2).toUpperCase(),
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
   function navigate(href: string) {
     router.push(href);
     onClose();
@@ -32,6 +56,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   async function logout() {
     localStorage.removeItem('isMasterAuthenticated');
+    localStorage.removeItem('currentUser');
     sessionStorage.removeItem('isMasterAuthenticated');
     router.push('/login');
   }
@@ -99,10 +124,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px' }}>
             <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, #ae8625 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: 14, color: '#fff', border: '2px solid rgba(0,0,0,0.05)' }}>LC</div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>Lucas Carvalho</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Gestor Administrativo</div>
+              fontWeight: 800, fontSize: 13, color: '#fff', border: '2px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>{user.initials}</div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.name}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.role}</div>
             </div>
           </div>
           <button onClick={logout} style={{
